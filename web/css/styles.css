@@ -1,0 +1,239 @@
+/* styles.css */
+
+/* General Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f6f9;
+    color: #333;
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+/* Headings */
+h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    text-align: center;
+}
+
+/* Links */
+a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #2c3e50;
+    color: #fff;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Status Column Styling for request_list.jsp and subordinate_requests.jsp */
+td:contains("Đang xử lý") {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+td:contains("Đã duyệt") {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+td:contains("Từ chối") {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+td:contains("Không xác định") {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+/* Specific Table Styling for agenda.jsp */
+table td[style*="background-color:red"] {
+    background-color: #ff4d4d !important;
+}
+
+table td[style*="background-color:lightgreen"] {
+    background-color: #b3ffb3 !important;
+}
+
+/* Forms */
+form {
+    max-width: 500px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="date"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+textarea {
+    resize: vertical;
+}
+
+input[type="submit"] {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Error Messages */
+p[style*="color: red"] {
+    color: #d32f2f !important;
+    text-align: center;
+    margin: 10px 0;
+}
+
+/* Lists (for home.jsp) */
+ul {
+    list-style: none;
+    padding: 0;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+ul li {
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+
+ul li a {
+    display: block;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+ul li a:hover {
+    background-color: #e6f3ff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    table {
+        font-size: 0.9em;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+
+    form {
+        padding: 15px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="date"],
+    textarea {
+        font-size: 0.9em;
+    }
+
+    input[type="submit"] {
+        padding: 8px 16px;
+    }
+}
+
+/* Additional Styling for Specific Pages */
+h3 {
+    color: #2c3e50;
+    margin: 20px 0 10px;
+    font-size: 1.4em;
+    text-align: center;
+}
+
+/* Styling for Action Links in subordinate_requests.jsp */
+td a {
+    margin: 0 5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: #fff;
+}
+
+td a[href*="reject"] {
+    background-color: #d32f2f;
+}
+
+td a:hover {
+    opacity: 0.8;
+    text-decoration: none;
+}
+
+/* Centered Home Link */
+a[href*="home.jsp"] {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    font-weight: 500;
+}
