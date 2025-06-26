@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dao;
 
 import java.sql.*;
@@ -9,8 +5,15 @@ import model.User;
 
 public class UserDAO extends DBContext {
 
-    public User checkLogin(String username, String password) {
-        String sql = "SELECT * FROM Users WHERE username = ? AND password = ?";
+    public User login(String username, String password) {
+        String sql = """
+            SELECT u.user_id, u.username, u.password, u.name, u.department_id, u.manager_id, r.role_name
+            FROM Users u
+            JOIN UserRole ur ON u.user_id = ur.user_id
+            JOIN Roles r ON ur.role_id = r.role_id
+            WHERE u.username = ? AND u.password = ?
+        """;
+
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -22,10 +25,11 @@ public class UserDAO extends DBContext {
                 User u = new User();
                 u.setUserId(rs.getInt("user_id"));
                 u.setUsername(rs.getString("username"));
-                u.setFullName(rs.getString("full_name"));
+                u.setPassword(rs.getString("password"));
+                u.setName(rs.getString("name"));
                 u.setDepartmentId(rs.getInt("department_id"));
-                u.setManagerId(rs.getInt("manager_id"));
-                u.setRole(rs.getString("role")); // thêm role
+                u.setManagerId(rs.getObject("manager_id") != null ? rs.getInt("manager_id") : null);
+                u.setRole(rs.getString("role_name"));
                 return u;
             }
         } catch (Exception e) {

@@ -1,42 +1,88 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="model.User" %>
+
 <%
-    User u = (User) session.getAttribute("user");
-    if (u == null) {
-        response.sendRedirect(request.getContextPath() + "/view/login.jsp");
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
+        response.sendRedirect("login.jsp");
         return;
     }
+
+    String role = user.getRole();
+    int pending = (int) request.getAttribute("pending");
+    int approved = (int) request.getAttribute("approved");
+    int rejected = (int) request.getAttribute("rejected");
 %>
+
 <html>
 <head>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/styles.css">
-     <title>Trang chủ</title>
+    
+    <title>Trang chủ</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+        h2 {
+            color: #2e6da4;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            margin: 8px 0;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+
 </head>
 <body>
-<h2>Chào mừng <%= u.getFullName() %> - Vai trò: <%= u.getRole() %></h2>
 
-<% if (u.getRole().equals("admin")) { %>
-    <h3>Quản lý hệ thống (Admin)</h3>
+<div class="section">
+    <h2>👋 Chào mừng, <%= user.getFullName() %>!</h2>
+    <p>Vai trò của bạn: <strong><%= role.toUpperCase() %></strong></p>
+</div>
+
+<div class="section">
+    <h3>📌 Chức năng</h3>
     <ul>
-        <li><a href="<%= request.getContextPath() %>/request/subordinates">📋 Quản lý tất cả đơn nghỉ (Leader + Nhân viên)</a></li>
-        <li><a href="<%= request.getContextPath() %>/agenda">📅 Xem lịch nghỉ toàn phòng</a></li>
+        <% if ("staff".equalsIgnoreCase(role) || "manager".equalsIgnoreCase(role)) { %>
+            <li>🟢 <a href="<%= request.getContextPath() %>/request/creat">Tạo đơn nghỉ phép</a></li>
+            <li>🟡 <a href="<%= request.getContextPath() %>/request/modif">Sửa đơn nghỉ</a></li>
+        <% } %>
+
+        <% if ("manager".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(role)) { %>
+            <li>🔵 <a href="<%= request.getContextPath() %>/request/review">Xét duyệt đơn</a></li>
+            <li>📆 <a href="<%= request.getContextPath() %>/agenda">Lịch nghỉ phòng ban</a></li>
+        <% } %>
+
+        <li>📄 <a href="<%= request.getContextPath() %>/request/list">Xem danh sách đơn nghỉ phép</a></li>
     </ul>
-<% } else if (u.getRole().equals("leader")) { %>
-    <h3>Chức năng Trưởng nhóm</h3>
+</div>
+
+<div class="section">
+    <h3>📊 Thống kê đơn nghỉ phép</h3>
     <ul>
-        <li><a href="<%= request.getContextPath() %>/request/subordinates">📋 Duyệt đơn của cấp dưới</a></li>
-        <li><a href="<%= request.getContextPath() %>/agenda">📅 Xem lịch phòng ban</a></li>
-        <li><a href="<%= request.getContextPath() %>/request/create">📝 Tạo đơn nghỉ phép</a></li>
-        <li><a href="<%= request.getContextPath() %>/request/list">📄 Xem đơn của tôi</a></li>
+        <li>🔄 Đơn đang chờ xử lý: <strong><%= pending %></strong></li>
+        <li>✅ Đơn đã duyệt: <strong><%= approved %></strong></li>
+        <li>❌ Đơn bị từ chối: <strong><%= rejected %></strong></li>
     </ul>
-<% } else if (u.getRole().equals("staff")) { %>
-    <h3>Chức năng Nhân viên</h3>
-    <ul>
-        <li><a href="<%= request.getContextPath() %>/request/create">📝 Tạo đơn nghỉ phép</a></li>
-        <li><a href="<%= request.getContextPath() %>/request/list">📄 Xem đơn của tôi</a></li>
-    </ul>
-<% } %>
-<br/>
-<a href="<%= request.getContextPath() %>/view/login.jsp">🔒 Đăng xuất</a>
+</div>
+
+<div class="section">
+    <a href="<%= request.getContextPath() %>/logout">🔓 Đăng xuất</a>
+</div>
+
 </body>
 </html>

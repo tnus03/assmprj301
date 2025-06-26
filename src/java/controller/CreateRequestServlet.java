@@ -1,53 +1,60 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
-
 package controller;
 
 import dao.LeaveRequestDAO;
 import jakarta.servlet.*;
-import jakarta.servlet.annotation.*;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import model.LeaveRequest;
 import model.User;
 
-@WebServlet("/request/create")
+@WebServlet("/request/creat")
 public class CreateRequestServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.getRequestDispatcher("/view/request_create.jsp").forward(request, response);
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+        req.getRequestDispatcher("/view/request_create.jsp").forward(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         throws ServletException, IOException {
+        try {
+            User user = (User) req.getSession().getAttribute("user");
 
-        HttpSession session = request.getSession();
-        User u = (User) session.getAttribute("user");
-        if (u == null) {
-            response.sendRedirect(request.getContextPath() + "/view/login.jsp");
-            return;
+            if (user == null) {
+                resp.sendRedirect(req.getContextPath() + "/login");
+                return;
+            }
+
+            // Chỉ cho phép staff & manager
+            if (!user.getRole().equalsIgnoreCase("staff") &&
+                !user.getRole().equalsIgnoreCase("manager")) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền tạo đơn.");
+                return;
+            }
+
+            String from = req.getParameter("from");
+            String to = req.getParameter("to");
+            String reason = req.getParameter("reason");
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            LeaveRequest lr = new LeaveRequest();
+            lr.setUserId(user.getUserId());
+            lr.setFromDate(sdf.parse(from));
+            lr.setToDate(sdf.parse(to));
+            lr.setReason(reason);
+            lr.setStatusId(1); // Inprogress
+
+            new LeaveRequestDAO().createRequest(lr);
+            resp.sendRedirect(req.getContextPath() + "/request/list");
+        } catch (IOException | ParseException e) {
+            req.setAttribute("error", "Lỗi dữ liệu. Vui lòng thử lại.");
+            req.getRequestDispatcher("/view/request_create.jsp").forward(req, resp);
         }
-
-        String title = request.getParameter("title");
-        String reason = request.getParameter("reason");
-        Date fromDate = Date.valueOf(request.getParameter("from_date"));
-        Date toDate = Date.valueOf(request.getParameter("to_date"));
-
-        LeaveRequest requestObj = new LeaveRequest(title, reason, fromDate, toDate, u.getUserId(), 1);
-
-        LeaveRequestDAO dao = new LeaveRequestDAO();
-        dao.createLeaveRequest(requestObj);
-
-        // Log kiểm tra
-        System.out.println("Đơn đã được tạo bởi user_id: " + u.getUserId());
-
-        response.sendRedirect(request.getContextPath() + "/view/request_list.jsp");
     }
 }

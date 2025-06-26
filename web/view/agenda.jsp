@@ -1,64 +1,85 @@
-<%-- 
-    Document   : agenda
-    Created on : Jun 13, 2025, 3:10:35 PM
-    Author     : ACER
---%>
-
-<%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="java.util.*" %>
+<%@ page import="java.util.*, java.text.SimpleDateFormat" %>
 <%@ page import="model.LeaveRequest" %>
-<%@ page import="model.User" %>
-<%
-    User u = (User) session.getAttribute("user");
-    if (u == null) {
-        response.sendRedirect(request.getContextPath() + "/view/login.jsp");
-        return;
-    }
+<%@ page contentType="text/html;charset=UTF-8" %>
 
+<%
     List<LeaveRequest> requests = (List<LeaveRequest>) request.getAttribute("requests");
-    Map<String, boolean[]> agendaMap = new HashMap<>();
+    String from = (String) request.getAttribute("from");
+    String to = (String) request.getAttribute("to");
+    String role = (String) request.getAttribute("role");
+
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    Date fromDate = sdf.parse(from);
+    Date toDate = sdf.parse(to);
+
+    Calendar cal = Calendar.getInstance();
+    Map<String, Set<String>> leaveMap = new LinkedHashMap<>();
 
     for (LeaveRequest r : requests) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(r.getFromDate());
-        int from = cal.get(Calendar.DAY_OF_MONTH);
-        cal.setTime(r.getToDate());
-        int to = cal.get(Calendar.DAY_OF_MONTH);
+        String name = r.getCreatorName();
+        if ("admin".equalsIgnoreCase(role) && r.getDepartmentName() != null) {
+            name += " (" + r.getDepartmentName() + ")";
+        }
 
-        String name = "User_" + r.getCreatedBy();
-        if (!agendaMap.containsKey(name)) agendaMap.put(name, new boolean[31]);
-        for (int i = from - 1; i < to; i++) {
-            agendaMap.get(name)[i] = true;
+        cal.setTime(r.getFromDate());
+        while (!cal.getTime().after(r.getToDate())) {
+            String d = sdf.format(cal.getTime());
+            leaveMap.computeIfAbsent(name, k -> new HashSet<>()).add(d);
+            cal.add(Calendar.DATE, 1);
         }
     }
+
+    List<String> days = new ArrayList<>();
+    cal.setTime(fromDate);
+    while (!cal.getTime().after(toDate)) {
+        days.add(sdf.format(cal.getTime()));
+        cal.add(Calendar.DATE, 1);
+    }
 %>
+
 <html>
 <head>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/styles.css">
-<title>Agenda phòng ban</title></head>
+    <title>Lịch nghỉ phòng ban</title>
+    
+    <style>
+        table { border-collapse: collapse; }
+        th, td { padding: 5px 10px; text-align: center; border: 1px solid black; }
+        .off { background-color: #ffcccc; }
+        .on { background-color: #ccffcc; }
+    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+
+</head>
 <body>
-<h2>Lịch nghỉ của nhân sự trong phòng (tháng này)</h2>
-<table border="1">
+
+<h2>Lịch nghỉ từ <%= from %> đến <%= to %></h2>
+
+<form method="get" action="agenda">
+    Từ ngày: <input type="date" name="from" value="<%= from %>">
+    Đến ngày: <input type="date" name="to" value="<%= to %>">
+    <button type="submit">Xem</button>
+</form>
+
+<table>
     <tr>
-        <th>Nhân sự</th>
-        <% for (int i = 1; i <= 31; i++) { %>
-            <th><%= i %></th>
+        <th>Nhân viên</th>
+        <% for (String d : days) { %>
+            <th><%= d %></th>
         <% } %>
     </tr>
-    <% for (String user : agendaMap.keySet()) { %>
-    <tr>
-        <td><%= user %></td>
-        <% boolean[] days = agendaMap.get(user); %>
-        <% for (int i = 0; i < 31; i++) { %>
-            <% if (days[i]) { %>
-                <td style="background-color:red;"></td>
-            <% } else { %>
-                <td style="background-color:lightgreen;"></td>
+    <% for (String name : leaveMap.keySet()) { %>
+        <tr>
+            <td><%= name %></td>
+            <% for (String d : days) { %>
+                <% boolean isOff = leaveMap.get(name).contains(d); %>
+                <td class="<%= isOff ? "off" : "on" %>"><%= isOff ? "Nghỉ" : "Làm" %></td>
             <% } %>
-        <% } %>
-    </tr>
+        </tr>
     <% } %>
 </table>
-<a href="${pageContext.request.contextPath}/view/home.jsp">Trang chủ</a>
+
+<br>
+<a href="${pageContext.request.contextPath}/home">🏠 Trang chủ</a>
+
 </body>
 </html>

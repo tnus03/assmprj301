@@ -1,35 +1,62 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
-
 package controller;
 
 import dao.LeaveRequestDAO;
-import jakarta.servlet.*;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import model.LeaveRequest;
 import model.User;
-import java.io.IOException;
-import java.util.List;
 
 @WebServlet("/agenda")
 public class AgendaServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        User u = (User) request.getSession().getAttribute("user");
-        if (u == null) {
-            response.sendRedirect("view/login.jsp");
+
+        User user = (User) req.getSession().getAttribute("user");
+        if (user == null) {
+            resp.sendRedirect("login.jsp");
             return;
         }
-        LeaveRequestDAO dao = new LeaveRequestDAO();
-        List<LeaveRequest> list = dao.getRequestsByDepartmentId(u.getUserId());
-        request.setAttribute("requests", list);
-        request.getRequestDispatcher("/view/agenda.jsp").forward(request, response);
+
+        String fromStr = req.getParameter("from");
+        String toStr = req.getParameter("to");
+
+        if (fromStr == null || toStr == null) {
+            fromStr = "2025-06-01";
+            toStr = "2025-06-10";
+        }
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date from = sdf.parse(fromStr);
+            Date to = sdf.parse(toStr);
+
+            LeaveRequestDAO dao = new LeaveRequestDAO();
+            List<LeaveRequest> list;
+
+            if ("admin".equalsIgnoreCase(user.getRole())) {
+                list = dao.getAllApprovedRequests(from, to);
+            } else {
+                list = dao.getApprovedRequestsInRangeByDepartment(user.getDepartmentId(), from, to);
+            }
+
+            req.setAttribute("requests", list);
+            req.setAttribute("from", fromStr);
+            req.setAttribute("to", toStr);
+            req.setAttribute("role", user.getRole());
+
+            req.getRequestDispatcher("/view/agenda.jsp").forward(req, resp);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("error", e.getMessage());
+            req.getRequestDispatcher("/view/agenda.jsp").forward(req, resp);
+        }
     }
 }
-

@@ -1,13 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
-
 package controller;
 
 import dao.LeaveRequestDAO;
 import jakarta.servlet.*;
-import jakarta.servlet.annotation.*;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
@@ -19,20 +14,20 @@ public class RequestListServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        User u = (User) session.getAttribute("user");
 
-        if (u == null) {
-            response.sendRedirect(request.getContextPath() + "/view/login.jsp");
+        User user = (User) req.getSession().getAttribute("user");
+
+        if (user == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
         LeaveRequestDAO dao = new LeaveRequestDAO();
-        List<LeaveRequest> list = dao.getRequestsByUserId(u.getUserId());
+        List<LeaveRequest> list = dao.getRequestsForUser(user);
 
-        request.setAttribute("list", list);
-        request.getRequestDispatcher("/view/request_list.jsp").forward(request, response);
+        req.setAttribute("list", list);
+        req.getRequestDispatcher("/view/request_list.jsp").forward(req, resp);
     }
 }
